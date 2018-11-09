@@ -1,2 +1,2 @@
-# lux-lib-crypto-replica
+# lux-libcrypto
 Library which encapsulates Crypto Replicas encrypting and decrypting
