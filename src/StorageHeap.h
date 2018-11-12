@@ -1,60 +1,44 @@
-#ifndef LUX_LIB_CRYPTO_STORAGEHEAP_H
-#define LUX_LIB_CRYPTO_STORAGEHEAP_H
+#ifndef LUX_LIB_CRYPTO_STORAGE_HEAP_H
+#define LUX_LIB_CRYPTO_STORAGE_HEAP_H
 
 #include <map>
 #include <vector>
 #include <string>
-
-typedef signed long long        int64_t;
-typedef unsigned long long      uint64_t;
+#include <boost/optional.hpp>
 
 struct AllocatedFile
 {
-    std::string path;
-
+    std::string filename;
     uint64_t size;
-
     std::string uri;
-
-    unsigned char* pubkey;
+    std::string pubkey;
 };
 
 
 struct StorageChunk
 {
     std::string path;
-
     std::vector<AllocatedFile> files;
-
     uint64_t totalSpace;
-
     uint64_t freeSpace;
 };
 
 
 class StorageHeap
 {
-private:
+protected:
     std::vector<StorageChunk> chunks;
-
     std::map<std::string, AllocatedFile> files;
 
 public:
-    void AddChunk(const std::string path, const uint64_t size);
-
-    void FreeChunk(const std::string path);
-
-    std::vector<StorageChunk> GetChunks;
-
-    uint64_t MaxAllocateSize();
-
-    void SetPubKey(const std::string uri, const unsigned char* pubkey);
-
-    boost::optional<AllocatedFile> GetFile(const std::string uri);
-
-    boost::optional<AllocatedFile> AllocateFile(const std::string uri);
-
-    void FreeFile(const std::string uri);
+    void AddChunk(const std::string& path, uint64_t size);
+    void FreeChunk(const std::string& path);
+    std::vector<StorageChunk> GetChunks() const;
+    uint64_t MaxAllocateSize() const;
+    void SetPubKey(const std::string& uri, const std::string& pubkey);
+    boost::optional<AllocatedFile> GetFile(const std::string& uri) const;
+    boost::optional<AllocatedFile> AllocateFile(const std::string& chunkPath, const std::string& uri, uint64_t size);
+    void FreeFile(const std::string& uri);
 };
 
-#endif //LUX_LIB_CRYPTO_STORAGEHEAP_H
+#endif //LUX_LIB_CRYPTO_STORAGE_HEAP_H
