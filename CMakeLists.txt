@@ -39,3 +39,18 @@ file(GLOB_RECURSE SRC
         "*.tpp"
         "*.cpp")
 add_library(${PROJECT_NAME} ${SRC})
+
+
+################################################################################
+ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
+
+add_executable(${PROJECT_NAME}_test src/test/storage_heap.cpp)
+
+target_link_libraries(${PROJECT_NAME}_test
+        ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY}
+        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+        )
+
+
+################################################################################
