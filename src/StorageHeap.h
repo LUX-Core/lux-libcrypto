@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <mutex>
 #include <boost/optional.hpp>
 
 struct AllocatedFile
@@ -27,10 +28,12 @@ struct StorageChunk
 class StorageHeap
 {
 protected:
+    std::mutex cs_dfs;
     std::vector<StorageChunk> chunks;
     std::map<std::string, AllocatedFile> files;
 
 public:
+    virtual ~StorageHeap() {}
     void AddChunk(const std::string& path, uint64_t size);
     void FreeChunk(const std::string& path);
     std::vector<StorageChunk> GetChunks() const;

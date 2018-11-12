@@ -1,16 +1,9 @@
 cmake_minimum_required (VERSION 3.5)
 
 set(BOOST_VERSION 1.58)
-include(ExternalProject)
-
-# For some reason we need to define both of these
-add_definitions(-DBOOST_COROUTINES_NO_DEPRECATION_WARNING)
-add_definitions(-DBOOST_COROUTINE_NO_DEPRECATION_WARNING)
 
 ################################################################################
 project(lux-lib-crypto)
-
-#find_package(OpenSSL REQUIRED)
 find_package(Boost ${BOOST_VERSION} REQUIRED COMPONENTS filesystem
         regex
         unit_test_framework
@@ -27,8 +20,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -Wall -ggdb ${SANITI
 ################################################################################
 include_directories(
         "${Boost_INCLUDE_DIR}"
-        "src"
-)
+        "src")
 
 
 ################################################################################
@@ -44,7 +36,8 @@ add_library(${PROJECT_NAME} ${SRC})
 ################################################################################
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
-add_executable(${PROJECT_NAME}_test src/test/storage_heap.cpp)
+add_executable(${PROJECT_NAME}_test src/test/storage_heap.cpp
+        src/StorageHeap.cpp)
 
 target_link_libraries(${PROJECT_NAME}_test
         ${Boost_FILESYSTEM_LIBRARY}
