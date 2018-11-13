@@ -42,7 +42,6 @@ uint64_t StorageHeap::MaxAllocateSize() const
 boost::optional<AllocatedFile> StorageHeap::AllocateFile(const std::string& uri, uint64_t size)
 {
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
-
     unsigned long nBestChunkIndex = chunks.size();
     uint64_t nBestChunkFreeSize = INT64_MAX;
     for (unsigned int i = 0; i < chunks.size(); ++i) {
@@ -51,7 +50,6 @@ boost::optional<AllocatedFile> StorageHeap::AllocateFile(const std::string& uri,
             nBestChunkFreeSize = chunks[i].freeSpace;
         }
     }
-
     if (nBestChunkIndex < chunks.size()) {
         AllocatedFile file;
         // file.filename = ; // TODO: generate it
