@@ -38,7 +38,7 @@ public:
     void FreeChunk(const std::string& path);
     std::vector<StorageChunk> GetChunks() const;
     uint64_t MaxAllocateSize() const;
-    boost::optional<AllocatedFile> AllocateFile(const std::string& chunkPath, const std::string& uri, uint64_t size);
+    boost::optional<AllocatedFile> AllocateFile(const std::string& uri, uint64_t size);
     void FreeFile(const std::string& uri);
     boost::optional<AllocatedFile> GetFile(const std::string& uri) const;
     void SetPubKey(const std::string& uri, const std::string& pubkey);

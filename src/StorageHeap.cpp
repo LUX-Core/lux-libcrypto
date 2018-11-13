@@ -39,23 +39,29 @@ uint64_t StorageHeap::MaxAllocateSize() const
     return nMaxAllocateSize;
 }
 
-boost::optional<AllocatedFile> StorageHeap::AllocateFile(const std::string& chunkPath, const std::string& uri, uint64_t size)
+boost::optional<AllocatedFile> StorageHeap::AllocateFile(const std::string& uri, uint64_t size)
 {
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
-    for (auto&& chunk : chunks) {
-        if (chunk.path == chunkPath) {
-            if (chunk.freeSpace >= size) {
-                AllocatedFile file;
-                // file.filename = ; // TODO: generate it
-                file.size = size;
-                file.uri = uri;
-                // add file to heap
-                files[uri] = file;
-                chunk.freeSpace -= size;
-                return file;
-            }
-            return {};
+
+    unsigned long nBestChunkIndex = chunks.size();
+    uint64_t nBestChunkFreeSize = INT64_MAX;
+    for (unsigned int i = 0; i < chunks.size(); ++i) {
+        if (chunks[i].freeSpace >= size && chunks[i].freeSpace < nBestChunkFreeSize) {
+            nBestChunkIndex = i;
+            nBestChunkFreeSize = chunks[i].freeSpace;
         }
+    }
+
+    if (nBestChunkIndex < chunks.size()) {
+        AllocatedFile file;
+        // file.filename = ; // TODO: generate it
+        file.size = size;
+        file.uri = uri;
+        // add file to heap
+        files[uri] = file;
+        chunks[nBestChunkIndex].files.push_back(file);
+        chunks[nBestChunkIndex].freeSpace -= size;
+        return file;
     }
     return {};
 }
@@ -64,10 +70,11 @@ void StorageHeap::FreeFile(const std::string& uri)
 {
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
     for (auto&& chunk : chunks) {
-        auto&& _files = chunk.files;
-        for (auto it = _files.begin(); it != _files.end(); ++it) {
+        auto&& pFiles = chunk.files;
+        for (auto it = pFiles.begin(); it != pFiles.end(); ++it) {
             if (it->uri == uri) {
-                _files.erase(it);
+                chunk.freeSpace += it->size;
+                pFiles.erase(it);
                 files.erase(files.find(uri));
                 return;
             }
@@ -91,6 +98,7 @@ void StorageHeap::SetPubKey(const std::string& uri, const std::string& pubkey)
         for (auto&& file : chunk.files) {
             if (file.uri == uri) {
                 file.pubkey = pubkey;
+                files[uri].pubkey = pubkey;
                 return;
             }
         }
