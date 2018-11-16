@@ -16,9 +16,7 @@ include(FindPkgConfig)
 include_directories("src")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -Wall -W -ggdb ${SANITIZE}")
-
-set(MAKE_PROGRAM "make")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -W -ggdb ${SANITIZE}")
 
 
 ################################################################################
@@ -36,13 +34,7 @@ set(MAKE_PROGRAM "make")
 #set(BOOST_LIBRARIES ${boost_PREFIX}/lib/libboost_thread.a)
 #list(APPEND BOOST_LIBRARIES ${boost_PREFIX}/lib/libboost_system.a)
 find_package(Boost ${BOOST_VERSION} REQUIRED COMPONENTS filesystem
-        regex
         unit_test_framework
-        program_options
-        coroutine
-        context
-        thread
-        date_time
         system)
 
 ################################################################################
@@ -59,8 +51,6 @@ find_package(Boost ${BOOST_VERSION} REQUIRED COMPONENTS filesystem
 #
 #include_directories(SYSTEM ${cryptopp_PREFIX}/include)
 #set(CRYPTOPP_LIBRARIES ${cryptopp_PREFIX}/lib/libcryptopp.a)
-include_directories(SYSTEM /usr/include)
-set(CRYPTOPP_LIBRARIES /usr/lib/libcryptopp.a)
 
 ################################################################################
 file(GLOB_RECURSE SRC
@@ -82,7 +72,8 @@ target_link_libraries(${PROJECT_NAME}_test
         ${Boost_FILESYSTEM_LIBRARY}
         ${Boost_SYSTEM_LIBRARY}
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
-        ${CRYPTOPP_LIBRARIES}
+        pthread
+        ssl
 )
 
 
