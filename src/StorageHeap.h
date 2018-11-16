@@ -6,9 +6,11 @@
 #include <string>
 #include <mutex>
 #include <boost/optional.hpp>
+#include <memory>
 
 struct AllocatedFile
 {
+    std::mutex cs;
     std::string filename;
     uint64_t size;
     std::string uri;
@@ -19,7 +21,7 @@ struct AllocatedFile
 struct StorageChunk
 {
     std::string path;
-    std::vector<AllocatedFile> files;
+    std::vector<std::shared_ptr<AllocatedFile>> files;
     uint64_t totalSpace;
     uint64_t freeSpace;
 };
@@ -30,7 +32,7 @@ class StorageHeap
 protected:
     mutable std::mutex cs_dfs;
     std::vector<StorageChunk> chunks;
-    std::map<std::string, AllocatedFile> files;
+    std::map<std::string, std::shared_ptr<AllocatedFile>> files;
 
 public:
     virtual ~StorageHeap() {}
@@ -38,9 +40,9 @@ public:
     void FreeChunk(const std::string& path);
     std::vector<StorageChunk> GetChunks() const;
     uint64_t MaxAllocateSize() const;
-    boost::optional<AllocatedFile> AllocateFile(const std::string& uri, uint64_t size);
+    std::shared_ptr<AllocatedFile> AllocateFile(const std::string& uri, uint64_t size);
     void FreeFile(const std::string& uri);
-    boost::optional<AllocatedFile> GetFile(const std::string& uri) const;
+    std::shared_ptr<AllocatedFile> GetFile(const std::string& uri) const;
     void SetPubKey(const std::string& uri, const std::string& pubkey);
 };
 

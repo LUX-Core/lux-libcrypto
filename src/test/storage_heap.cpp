@@ -12,7 +12,7 @@ public:
         return chunks;
     }
 
-    std::map<std::string, AllocatedFile>& _files() {
+    std::map<std::string, std::shared_ptr<AllocatedFile>>& _files() {
         return files;
     }
 };
@@ -101,18 +101,18 @@ BOOST_AUTO_TEST_CASE(allocate_file)
     BOOST_CHECK_EQUAL(pTestHeap->_chunks().size(), 1);
     StorageChunk& chunk = pTestHeap->_chunks()[0];
     BOOST_CHECK_EQUAL(chunk.files.size(), 1);
-    AllocatedFile& file = chunk.files[0];
-    BOOST_CHECK_EQUAL(file.uri, strFileURI);
-    BOOST_CHECK_EQUAL(file.size, nFileSize);
-    BOOST_CHECK_EQUAL(file.filename, "");
-    BOOST_CHECK_EQUAL(file.pubkey, "");
+    std::shared_ptr<AllocatedFile>& file = chunk.files[0];
+    BOOST_CHECK_EQUAL(file->uri, strFileURI);
+    BOOST_CHECK_EQUAL(file->size, nFileSize);
+    BOOST_CHECK_EQUAL(file->filename, "");
+    BOOST_CHECK_EQUAL(file->pubkey, "");
     BOOST_CHECK_EQUAL(pTestHeap->_files().size(), 1);
     auto file_it = pTestHeap->_files().find(strFileURI);
     BOOST_CHECK(file_it != pTestHeap->_files().end());
-    BOOST_CHECK_EQUAL(file_it->second.uri, strFileURI);
-    BOOST_CHECK_EQUAL(file_it->second.size, nFileSize);
-    BOOST_CHECK_EQUAL(file_it->second.filename, "");
-    BOOST_CHECK_EQUAL(file_it->second.pubkey, "");
+    BOOST_CHECK_EQUAL(file_it->second->uri, strFileURI);
+    BOOST_CHECK_EQUAL(file_it->second->size, nFileSize);
+    BOOST_CHECK_EQUAL(file_it->second->filename, "");
+    BOOST_CHECK_EQUAL(file_it->second->pubkey, "");
 }
 
 BOOST_AUTO_TEST_CASE(find_best_chunk)
@@ -136,10 +136,10 @@ BOOST_AUTO_TEST_CASE(find_best_chunk)
     BOOST_CHECK_EQUAL(pTestHeap->_files().size(), 1);
     auto file_it = pTestHeap->_files().find(strFileURI);
     BOOST_CHECK(file_it != pTestHeap->_files().end());
-    BOOST_CHECK_EQUAL(file_it->second.uri, strFileURI);
-    BOOST_CHECK_EQUAL(file_it->second.size, nFileSize);
-    BOOST_CHECK_EQUAL(file_it->second.filename, "");
-    BOOST_CHECK_EQUAL(file_it->second.pubkey, "");
+    BOOST_CHECK_EQUAL(file_it->second->uri, strFileURI);
+    BOOST_CHECK_EQUAL(file_it->second->size, nFileSize);
+    BOOST_CHECK_EQUAL(file_it->second->filename, "");
+    BOOST_CHECK_EQUAL(file_it->second->pubkey, "");
 }
 
 BOOST_AUTO_TEST_CASE(doesnt_allocate_oversize_file)
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(file_not_found)
 
     auto file = heap.GetFile(strOtherFileURI);
 
-    BOOST_CHECK(!file.is_initialized());
+    BOOST_CHECK(!file);
 }
 
 BOOST_AUTO_TEST_CASE(set_public_key_for_file)

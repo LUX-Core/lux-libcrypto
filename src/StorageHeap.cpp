@@ -14,9 +14,18 @@ void StorageHeap::FreeChunk(const std::string& path)
 {
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
     for (auto it = chunks.begin(); it != chunks.end(); ++it) {
+        auto files_cs = it->files;
+        for (auto&& file_ptr : files_cs) {
+            file_ptr->cs.lock();
+        }
+
         if (it->path == path) {
             chunks.erase(it);
             break;
+        }
+
+        for (auto&& file_ptr : files_cs) {
+            file_ptr->cs.unlock();
         }
     }
 }
@@ -39,7 +48,7 @@ uint64_t StorageHeap::MaxAllocateSize() const
     return nMaxAllocateSize;
 }
 
-boost::optional<AllocatedFile> StorageHeap::AllocateFile(const std::string& uri, uint64_t size)
+std::shared_ptr<AllocatedFile> StorageHeap::AllocateFile(const std::string& uri, uint64_t size)
 {
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
     unsigned long nBestChunkIndex = chunks.size();
@@ -51,15 +60,15 @@ boost::optional<AllocatedFile> StorageHeap::AllocateFile(const std::string& uri,
         }
     }
     if (nBestChunkIndex < chunks.size()) {
-        AllocatedFile file;
-        // file.filename = ; // TODO: generate it
-        file.size = size;
-        file.uri = uri;
+        std::shared_ptr<AllocatedFile> file_ptr = std::make_shared<AllocatedFile>();
+        // file->filename = ; // TODO: generate it
+        file_ptr->size = size;
+        file_ptr->uri = uri;
         // add file to heap
-        files[uri] = file;
-        chunks[nBestChunkIndex].files.push_back(file);
+        files[uri] = file_ptr;
+        chunks[nBestChunkIndex].files.push_back(file_ptr);
         chunks[nBestChunkIndex].freeSpace -= size;
-        return file;
+        return file_ptr;
     }
     return {};
 }
@@ -70,8 +79,10 @@ void StorageHeap::FreeFile(const std::string& uri)
     for (auto&& chunk : chunks) {
         auto&& pFiles = chunk.files;
         for (auto it = pFiles.begin(); it != pFiles.end(); ++it) {
-            if (it->uri == uri) {
-                chunk.freeSpace += it->size;
+            auto file_ptr = *it;
+            std::lock_guard<std::mutex> file_scoped_lock(file_ptr->cs);
+            if (file_ptr->uri == uri) {
+                chunk.freeSpace += file_ptr->size;
                 pFiles.erase(it);
                 files.erase(files.find(uri));
                 return;
@@ -80,7 +91,7 @@ void StorageHeap::FreeFile(const std::string& uri)
     }
 }
 
-boost::optional<AllocatedFile> StorageHeap::GetFile(const std::string& uri) const
+std::shared_ptr<AllocatedFile> StorageHeap::GetFile(const std::string& uri) const
 {
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
     auto file_it = files.find(uri);
@@ -94,9 +105,9 @@ void StorageHeap::SetPubKey(const std::string& uri, const std::string& pubkey)
     std::lock_guard<std::mutex> scoped_lock(cs_dfs);
     for (auto&& chunk : chunks) {
         for (auto&& file : chunk.files) {
-            if (file.uri == uri) {
-                file.pubkey = pubkey;
-                files[uri].pubkey = pubkey;
+            if (file->uri == uri) {
+                file->pubkey = pubkey;
+                files[uri]->pubkey = pubkey;
                 return;
             }
         }
