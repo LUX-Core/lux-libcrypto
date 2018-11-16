@@ -15,7 +15,7 @@ include(FindPkgConfig)
 
 include_directories("src")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -fopenmp ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -W -ggdb ${SANITIZE}")
 
 
@@ -65,7 +65,9 @@ add_library(${PROJECT_NAME} ${SRC})
 ################################################################################
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
-add_executable(${PROJECT_NAME}_test src/test/storage_heap.cpp
+add_executable(${PROJECT_NAME}_test
+        src/test/storage_heap.cpp
+        src/test/rsa.cpp
         src/StorageHeap.cpp)
 
 target_link_libraries(${PROJECT_NAME}_test
@@ -74,6 +76,8 @@ target_link_libraries(${PROJECT_NAME}_test
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
         pthread
         ssl
+        crypto
+        gomp
 )
 
 
