@@ -65,8 +65,10 @@ add_library(${PROJECT_NAME} ${SRC})
 ################################################################################
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
-add_executable(${PROJECT_NAME}_test src/test/storage_heap.cpp
-        src/StorageHeap.cpp)
+add_executable(${PROJECT_NAME}_test
+        src/test/storage_heap.cpp
+        src/StorageHeap.cpp
+        src/CryptoSplitter.cpp)
 
 target_link_libraries(${PROJECT_NAME}_test
         ${Boost_FILESYSTEM_LIBRARY}
