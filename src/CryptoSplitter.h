@@ -25,9 +25,9 @@ struct RSASettings {
 };
 
 uint64_t GetCryptoReplicaSize(size_t srcSize, const RSASettings& rsa);
-void EncryptData(const byte* src, uint64_t offset, size_t srcSize, byte *cipherText,
+void EncryptData(const byte* src, uint64_t offset, size_t srcSize, byte *cipherText, byte *temp,
                  const AESSettings& aes, const RSASettings& rsa);
-void DecryptData(const byte* src, uint64_t offset, size_t srcSize, byte *plainText,
+void DecryptData(const byte* src, uint64_t offset, size_t srcSize, byte *plainText, byte *temp,
                  const AESSettings& aes, const RSASettings& rsa);
 
 //void EncryptFile(const std::string& source,

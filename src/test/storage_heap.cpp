@@ -6,13 +6,16 @@
 
 BOOST_AUTO_TEST_SUITE(storage_heap_tests)
 
-class TestStorageHeap : public StorageHeap {
+class TestStorageHeap : public StorageHeap
+{
 public:
-    std::vector<StorageChunk>& _chunks() {
+    std::vector<StorageChunk>& _chunks()
+    {
         return chunks;
     }
 
-    std::map<std::string, std::shared_ptr<AllocatedFile>>& _files() {
+    std::map<std::string, std::shared_ptr<AllocatedFile>>& _files()
+    {
         return files;
     }
 };

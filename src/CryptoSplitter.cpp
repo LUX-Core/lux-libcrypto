@@ -7,7 +7,6 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rsa.h>
-#include <memory>
 #include <cmath>
 
 void handleErrors()
@@ -16,30 +15,47 @@ void handleErrors()
     abort();
 }
 
-int encrypt(unsigned char *plaintext, int plaintext_len, AESKey key,
-            unsigned char *iv, unsigned char *ciphertext)
+int encrypt(const unsigned char *plaintext, int plaintext_len, AESKey key,
+            const unsigned char *iv, unsigned char *ciphertext)
 {
     EVP_CIPHER_CTX *ctx;
+
     int len;
+
     int ciphertext_len;
 
-    if(!(ctx = EVP_CIPHER_CTX_new())){
+    /* Create and initialise the context */
+    if(!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
+
+    /* Initialise the encryption operation. IMPORTANT - ensure you use a key
+     * and IV size appropriate for your cipher
+     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
+     * IV size for *most* modes is the same as the block size. For AES this
+     * is 128 bits */
+    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key.data(), iv))
         handleErrors();
-    }
-    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key.data(), iv)){
+
+    /* Provide the message to be encrypted, and obtain the encrypted output.
+     * EVP_EncryptUpdate can be called multiple times if necessary
+     */
+    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
         handleErrors();
-    }
-    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len)){
-        handleErrors();
-    }
     ciphertext_len = len;
-    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)){
-        handleErrors();
-    }
+
+    /* Finalise the encryption. Further ciphertext bytes may be written at
+     * this stage.
+     */
+    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) handleErrors();
     ciphertext_len += len;
+
+    /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
 
     return ciphertext_len;
+}
+
+uint64_t GetCryptoReplicaSize(size_t srcSize, const RSASettings& rsa){
+    return (uint64_t)ceil((double)srcSize / rsa.blockSize) * rsa.blockSize;
 }
 
 void ShuffleAES(const byte* src, uint64_t offset, size_t srcSize, byte *cipherText, const AESSettings& aes)
@@ -55,41 +71,38 @@ void ShuffleAES(const byte* src, uint64_t offset, size_t srcSize, byte *cipherTe
             salt[(i + 1) * step - 1] = offset + i;
         }
         // encrypt salt
-        byte encryptSalt[chunkSize];
-        if (encrypt((byte*) salt, chunkSize, aes.key, NULL, encryptSalt) != chunkSize) {
+        byte encryptSalt[chunkSize + 16];
+        if (encrypt((byte*) salt, chunkSize, aes.key, NULL, encryptSalt) != (chunkSize + 16)) {
             handleErrors();
         }
         // xor with salt
         for (size_t i = 0; (i < chunkSize) && ((i + k) < srcSize); ++i){
-            cipherText[i] =  src[i] ^ encryptSalt[i];
+            cipherText[i + k] =  src[i + k] ^ encryptSalt[i];
         }
     }
 }
 
-uint64_t GetCryptoReplicaSize(size_t srcSize, const RSASettings& rsa){
-    return (uint64_t)ceil((double)srcSize / rsa.blockSize) * rsa.blockSize;
-}
 
-void EncryptData(const byte* src, uint64_t offset, size_t srcSize, byte *cipherText,
+void EncryptData(const byte* src, uint64_t offset, size_t srcSize, byte *cipherText, byte *temp,
                  const AESSettings& aes, const RSASettings& rsa)
 {
-    std::vector<byte> aesEncrypted(srcSize);
-    ShuffleAES(src, offset, srcSize, aesEncrypted.data(), aes);
-    if(RSA_private_encrypt((int)srcSize, aesEncrypted.data(), cipherText, rsa.keypair, RSA_NO_PADDING) == -1) {
+    ShuffleAES(src, offset, srcSize, temp, aes);
+    auto size = (int)GetCryptoReplicaSize(srcSize, rsa);
+    if(RSA_private_encrypt(size, temp, cipherText, rsa.keypair, RSA_NO_PADDING) == -1) {
         ERR_load_crypto_strings();
         handleErrors();
     }
 }
 
-void DecryptData(const byte* src, uint64_t offset, size_t srcSize, byte *plainText,
+void DecryptData(const byte* src, uint64_t offset, size_t srcSize, byte *plainText, byte *temp,
                  const AESSettings& aes, const RSASettings& rsa)
 {
-    std::vector<byte> aesDecrypted(srcSize);
-    ShuffleAES(src, offset, srcSize, aesDecrypted.data(), aes);
-    if(RSA_public_decrypt((int)srcSize, aesDecrypted.data(), plainText, rsa.keypair, RSA_NO_PADDING) == -1) {
+    auto size = (int)GetCryptoReplicaSize(srcSize, rsa);
+    if(RSA_public_decrypt(size, src, temp, rsa.keypair, RSA_NO_PADDING) == -1) {
         ERR_load_crypto_strings();
         handleErrors();
     }
+    ShuffleAES(temp, offset, srcSize, plainText, aes);
 }
 
 //#include "StorageHeap.h"

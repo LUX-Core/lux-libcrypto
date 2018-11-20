@@ -67,6 +67,7 @@ ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
 add_executable(${PROJECT_NAME}_test
         src/test/storage_heap.cpp
+        src/test/crypto_splitter.cpp
         src/StorageHeap.cpp
         src/CryptoSplitter.cpp)
 
@@ -76,6 +77,7 @@ target_link_libraries(${PROJECT_NAME}_test
         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
         pthread
         ssl
+        crypto
 )
 
 
