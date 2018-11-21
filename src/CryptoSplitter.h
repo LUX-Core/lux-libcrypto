@@ -11,24 +11,20 @@
 
 struct AllocatedFile;
 
-using byte = unsigned char;
-using AESKey = std::vector<byte>;
+typedef unsigned char byte;
+typedef std::vector<byte> AESKey;
 
-struct AESSettings {
-    AESKey key;
-    size_t blockSize;
-};
+static constexpr size_t nBlockSizeRSA = 128;
+static constexpr size_t nBlockSizeAES = 16;
 
-struct RSASettings {
-    RSA *keypair;
-    size_t blockSize;
-};
+BIGNUM *GetMinModulus();
+uint64_t GetCryptoReplicaSize(size_t srcSize, size_t blockSizeRSA = nBlockSizeRSA);
+void EncryptData(const byte *src, uint64_t offset, size_t srcSize, byte *cipherText,
+                 const AESKey &aesKey, RSA *rsa);
+void DecryptData(const byte *src, uint64_t offset, size_t srcSize, byte *plainText,
+                 const AESKey &aesKey, RSA *rsa);
 
-uint64_t GetCryptoReplicaSize(size_t srcSize, const RSASettings& rsa);
-void EncryptData(const byte* src, uint64_t offset, size_t srcSize, byte *cipherText, byte *temp,
-                 const AESSettings& aes, const RSASettings& rsa);
-void DecryptData(const byte* src, uint64_t offset, size_t srcSize, byte *plainText, byte *temp,
-                 const AESSettings& aes, const RSASettings& rsa);
+
 
 //void EncryptFile(const std::string& source,
 //                 const std::string& pathToDestination,
