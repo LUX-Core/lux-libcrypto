@@ -68,8 +68,10 @@ ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 add_executable(${PROJECT_NAME}_test
         src/test/storage_heap.cpp
         src/test/crypto_splitter.cpp
+        src/test/merkle_block.cpp
         src/StorageHeap.cpp
-        src/CryptoSplitter.cpp)
+        src/CryptoSplitter.cpp
+        src/MerkleBlock.cpp)
 
 target_link_libraries(${PROJECT_NAME}_test
         ${Boost_FILESYSTEM_LIBRARY}
