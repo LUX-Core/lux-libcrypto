@@ -3,10 +3,6 @@
 
 #include <string>
 #include <vector>
-//#include <map>
-//#include <mutex>
-//#include <boost/optional.hpp>
-//#include <memory>
 #include <openssl/bn.h>
 
 struct AllocatedFile;
@@ -23,18 +19,5 @@ void EncryptData(const byte *src, uint64_t offset, size_t srcSize, byte *cipherT
                  const AESKey &aesKey, RSA *rsa);
 void DecryptData(const byte *src, uint64_t offset, size_t srcSize, byte *plainText,
                  const AESKey &aesKey, RSA *rsa);
-
-
-
-//void EncryptFile(const std::string& source,
-//                 const std::string& pathToDestination,
-//                 const AESSettings& aes,
-//                 const RCASettings& rca,
-//                 const AllocatedFile& distFileInfo);
-//void DecryptFile(const std::string& pathToSource,
-//                 const std::string& destination,
-//                 const AESSettings& aes,
-//                 const RSASettings& rca,
-//                 const AllocatedFile& sourceFileInfo);
 
 #endif //LUX_LIB_CRYPTO_CRYPTOSPLITTER_H

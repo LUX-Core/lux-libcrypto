@@ -54,7 +54,7 @@ int encrypt(const unsigned char *plaintext, int plaintext_len, AESKey key,
     return ciphertext_len;
 }
 
-BIGNUM *getMinModulus()
+BIGNUM *GetMinModulus()
 {
     BIGNUM *minModulus = BN_new();
     std::string minModulusHex;
@@ -121,30 +121,3 @@ void DecryptData(const byte *src, uint64_t offset, size_t srcSize, byte *plainTe
     }
 }
 
-//#include "StorageHeap.h"
-//
-//void EncryptFile(const std::string& source,
-//                 const std::string& pathToDestination,
-//                 const AESSettings& aes,
-//                 const RSASettings& rca,
-//                 const AllocatedFile& distFileInfo)
-//{
-//    using namespace std;
-//    ifstream sourceFile(source, ios::binary|ios::ate);
-//    if(!sourceFile.is_open() || aes.size == 0 || rca.size == 0) {
-//        return;
-//    }
-//    auto sourceFileLength = (uint64_t)sourceFile.tellg();
-//    uint64_t position = 0;
-//    sourceFile.seekg(0, sourceFile.beg);
-//    lock_guard<std::mutex> scoped_lock(distFileInfo.cs);
-//    ofstream destFile(pathToDestination + "/" + distFileInfo.filename, ios::binary);
-//    if(!destFile.is_open()) {
-//        throw invalid_argument("cann't open destination file");;
-//    }
-//    auto *buffer = (char *)malloc(aes.size * sizeof(char));
-//    while(position <= sourceFileLength){
-//
-//        position += aes.size;
-//    }
-//}
