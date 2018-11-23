@@ -4,9 +4,9 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <memory>
 #include <mutex>
 #include <boost/optional.hpp>
-#include <memory>
 
 struct AllocatedFile
 {

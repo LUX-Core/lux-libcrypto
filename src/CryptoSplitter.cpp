@@ -1,10 +1,10 @@
 #include "CryptoSplitter.h"
 
 #include <cstring>
+#include <cmath>
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/rsa.h>
-#include <cmath>
 
 void handleErrors()
 {
